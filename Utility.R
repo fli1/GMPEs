@@ -11,7 +11,7 @@ library(colorspace)
 
 GetSubdata <- function(output.sa, list.p,
                        flag.scenario="distance", flag.period = "PGA") {
-  
+
   # output.Sa <- array(NA, dim = c(n, m, le, he)) # distance, magnitude, period, depth
   
   # list.dist = exp(seq(log(1),log(500),length.out=50)) ##
@@ -62,7 +62,7 @@ plot.comp <- function (figname, datain, data.recorded,
   
   n=length(list.GMPEs)
   pal <-rainbow_hcl(n, c=100, l=50, start = 0, end = 360*(n-1)/n)
-  
+
   lwd <- c(rep(c(2,3),n))
   lty <- c(1,1,1,1,2,2,2) #c(rep(c(1,2),n))
   col <- pal
@@ -139,7 +139,7 @@ plot.comp <- function (figname, datain, data.recorded,
   mtext("Spectral Acceleration (g)", side = 2, line = 2.5, cex=0.95)
   mtext(sprintf("%s", figtitle),
         side = 3, line = 1, cex=0.95)
-  
+
   legend("topright", list.GMPEs,
          col = col,
          ncol = 1, bty = 'o', border = 'white', bg = 'white',

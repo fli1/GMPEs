@@ -4,52 +4,52 @@
 # library(scales)
 AEA16SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30, 
                             F_DeltaC1, Delta_C1_input, F_FABA,
-                            F_sigma=0, AddMedian = 0) {
-  #   
+                           F_sigma=0, AddMedian = 0) {
+#   
   ### the following needs to be updated 
-  #   % Purpose: Computes the mean and standard deviation of the PGA
-  #   % or psuedoacceleration, PSA, 5% damping. 
-  #   
-  #   % Citation: 
-  #   
-  #   % General Limitations: This equation is obtained from a global database of
-  #   % ground motions (~1200 horizontal records). It is highly recommended that
-  #   % a comparison be drawn using records that compare well with the region of
-  #   % interest.
-  #   %   The authors suggest applying the equation for these given bounds:
-  #     
-  #     %   For Interface Events:
-  #     %   5.5 <= M < 6.5 and Df <= 80 km
-  #   %   6.5 <= M < 7.5 and Df <= 150 km
-  #   %   M >= 7.5 and Df <= 300 km
-  #   
-  #   %   For Intraslab (In-slab) Events:
-  #     %   6.0 <= M < 6.5 and Df <= 100 km
-  #   %   M >= 6.5 and Df <= 200 km
-  #   
-  #   %   The established bounds optimize the equations for seismic-hazard
-  #   %   analysis.
-  #   
-  #   %------------------------------INPUTS-------------------------------------%
-  #   
-  #   % T  = Period (sec)
-  #   % M  = Moment Magnitude
-  #   % Zh  = Focal (Hypocentral) Depth (km)
-  #   % R = closest distance to the fault surface (km)
-  #   % Fevent = Subduction Type Indicator: Zt = 0 for interface events
-  #   %                                 Zt = 1 for intraslab (in-slab) events
-  #   % Vs30 = Shear Wave Velocity averaged over the top 30 meters of soil of the
-  #   %      soil profile (m/sec)
-  #   
-  #   
-  #   %------------------------------OUTPUTS------------------------------------%
-  #     
-  #     % Sa    = Median spectral acceleration prediction (g)
-  #   % sigma = Logarithmic standard deviation of spectral acceleration
-  #   %         prediction
+#   % Purpose: Computes the mean and standard deviation of the PGA
+#   % or psuedoacceleration, PSA, 5% damping. 
+#   
+#   % Citation: 
+#   
+#   % General Limitations: This equation is obtained from a global database of
+#   % ground motions (~1200 horizontal records). It is highly recommended that
+#   % a comparison be drawn using records that compare well with the region of
+#   % interest.
+#   %   The authors suggest applying the equation for these given bounds:
+#     
+#     %   For Interface Events:
+#     %   5.5 <= M < 6.5 and Df <= 80 km
+#   %   6.5 <= M < 7.5 and Df <= 150 km
+#   %   M >= 7.5 and Df <= 300 km
+#   
+#   %   For Intraslab (In-slab) Events:
+#     %   6.0 <= M < 6.5 and Df <= 100 km
+#   %   M >= 6.5 and Df <= 200 km
+#   
+#   %   The established bounds optimize the equations for seismic-hazard
+#   %   analysis.
+#   
+#   %------------------------------INPUTS-------------------------------------%
+#   
+#   % T  = Period (sec)
+#   % M  = Moment Magnitude
+#   % Zh  = Focal (Hypocentral) Depth (km)
+#   % R = closest distance to the fault surface (km)
+#   % Fevent = Subduction Type Indicator: Zt = 0 for interface events
+#   %                                 Zt = 1 for intraslab (in-slab) events
+#   % Vs30 = Shear Wave Velocity averaged over the top 30 meters of soil of the
+#   %      soil profile (m/sec)
+#   
+#   
+#   %------------------------------OUTPUTS------------------------------------%
+#     
+#     % Sa    = Median spectral acceleration prediction (g)
+#   % sigma = Logarithmic standard deviation of spectral acceleration
+#   %         prediction
   
   #-------------------Period----------------------------
-  #   period <- array(c(0.01, 0.04, 0.1, 0.2, 0.4, 1, 2, 1/0.33))
+#   period <- array(c(0.01, 0.04, 0.1, 0.2, 0.4, 1, 2, 1/0.33))
   # read coefficients
   file = sprintf("%s\\coeffs\\AEA16Coeffs.csv", getwd())
   coeffs <- read.csv(file, header = TRUE, sep=",")
@@ -101,7 +101,7 @@ AEA16SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
   theta15= coeffs$theta15[i]
   theta16= coeffs$theta16[i]
   Vlin= coeffs$Vlin[i]
-  
+
   b= coeffs$b[i]
   c= coeffs$c[i]
   n= coeffs$n[i]
@@ -144,7 +144,7 @@ AEA16SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
   lnPGA1000  = lnPGA1000 - 0.0012*R + 3.12*F_event + f_mag_M0 + f_depth_Zh0 + f_FABA_R0
   
   PGA1000  = exp(lnPGA1000)
-  
+
   
   if (Vs30 < Vlin)  {
     f_site_PGA = theta12 * log(Vs_star/Vlin) - b* log(PGA1000 + c)+ b * log(PGA1000 + c * (Vs_star/Vlin)^n)
@@ -153,7 +153,7 @@ AEA16SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
     f_site_PGA = theta12*log(Vs_star/Vlin) + b*n* log(Vs_star/Vlin)
   }
   
-  
+
   
   lnY =  theta1 + theta4 * Delta_C1 
   lnY = lnY + (theta2+ theta14*F_event + theta3*(M-7.8))*log(R+C4*exp((M-6)*theta9)) + theta6*R 
@@ -168,7 +168,7 @@ AEA16SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
   
   Sa <- exp(lnY)   #### % Median Sa in g
   sigma <- sigmaLnY
-  
+
   temp <-array(c(Sa, sigma)) 
   return (temp)
 }
@@ -202,9 +202,9 @@ AEA16SZ.Cal <- function (ip, M, Zh, R, Fevent, Vs30,
       Sa_sigma_lo <- AEA16SZ.subCal(T_lo,M,Zh, R, Fevent, Vs30, 
                                     F_DeltaC1, Delta_C1_input, F_FABA,F_sigma,AddMedian)
       
-      #     x <- array(c(T_lo, T_hi))
-      #     Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
-      #     Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
+  #     x <- array(c(T_lo, T_hi))
+  #     Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
+  #     Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
       Sa <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])  ###(x,Y_Sa,T)    #########
       sigma <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
       Sa_sigma <- array(c(Sa, sigma))
