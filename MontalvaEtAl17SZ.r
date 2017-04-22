@@ -184,9 +184,9 @@ MBR17SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
   }
   
   Sa <- exp(lnY)   #### % Median Sa in g
-  sigma <- sigmaLnY
+  sigmatotal <- sigmaLnY
 
-  temp <-array(c(Sa, sigma)) 
+  temp <-array(c(Sa, sigmatotal, fi, tau)) 
   return (temp)
 }
 
@@ -223,8 +223,10 @@ MBR17SZ.Cal <- function (ip, M, Zh, R, Fevent, Vs30,
   #     Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
   #     Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
       Sa <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])  ###(x,Y_Sa,T)    #########
+      sigmatotal <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
       sigma <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
-      Sa_sigma <- array(c(Sa, sigma))
+      tau <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
+      Sa_sigma <- array(c(Sa, sigmatotal, sigma, tau))
     }
   }
   if (length(which(period == ip)) > 0) {
@@ -253,7 +255,8 @@ MBR17SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   
   output.Sa <- array(NA, dim = c(n, m, le, he))
   output.Sd <- array(NA, dim = c(le))
-  
+  output.sigma <- array(NA, dim = c(le))
+  output.tau <- array(NA, dim = c(le))
   for (hh in 1:he)
   {
     for (j in 1:m)
@@ -269,11 +272,14 @@ MBR17SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
           
           output.Sa[k,j,t,hh] <- results[1] #*980
           output.Sd[t] <- results[2]
+          output.sigma[t] = results[3]
+          output.tau[t] = results[4]
         }
       }
     }
     # print(h.list[hh])
   }
+  output.Sd = cbind(output.Sd, output.sigma, output.tau)
   return(list(output.Sa, output.Sd))
 }
 

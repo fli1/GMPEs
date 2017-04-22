@@ -91,18 +91,18 @@ Youngs_1997_SZ <- function(M, ip, r, H, Zt, Zr,AddMedian=0)
     #     Y_sigma = [sigma_low sigma_high]
         Sa <- interpolate(ip, T_low, T_high, Sa_sigma_low[1], Sa_sigma_high[1])
         sigma <- interpolate(ip, T_low, T_high, Sa_sigma_low[2], Sa_sigma_high[2])
-        Sa_sigma <- array(c(Sa, sigma))
+        Sa_sigma <- array(c(Sa, sigma, 0,0))
       }
     }
     else {
-    i <- which(period_soil == ip)
+      i <- which(period_soil == ip)
+      
+      ln_Y <- gsc1[i] + gsc2[i]*M + gsc3[i]*(10-M)^3 + 
+        gsc4[i]*(log((r)+gsc7[i]*exp(gsc8[i]*M))) + gsc5[i]*H + gsc6[i]*Zt
     
-    ln_Y <- gsc1[i] + gsc2[i]*M + gsc3[i]*(10-M)^3 + 
-      gsc4[i]*(log((r)+gsc7[i]*exp(gsc8[i]*M))) + gsc5[i]*H + gsc6[i]*Zt
-  
-    sigma <- max((gsc9[i] + gsc10[i]*M), gsc11[i])
-    Sa <- exp(ln_Y)
-    Sa_sigma <- array(c(Sa, sigma))
+      sigma <- max((gsc9[i] + gsc10[i]*M), gsc11[i])
+      Sa <- exp(ln_Y)
+      Sa_sigma <- array(c(Sa, sigma, 0,0))
     }
   }
   
@@ -127,7 +127,7 @@ Youngs_1997_SZ <- function(M, ip, r, H, Zt, Zr,AddMedian=0)
         #     Y_sigma = [sigma_low sigma_high]
         Sa <- interpolate(ip, T_low, T_high, Sa_sigma_low[1], Sa_sigma_high[1])
         sigma <- interpolate(ip, T_low, T_high, Sa_sigma_low[2], Sa_sigma_high[2])
-        Sa_sigma <- array(c(Sa, sigma))
+        Sa_sigma <- array(c(Sa, sigma, 0,0))
       }
     }
     else {
@@ -137,7 +137,7 @@ Youngs_1997_SZ <- function(M, ip, r, H, Zt, Zr,AddMedian=0)
       sigma <- max((grc9[i] + grc10[i]*M), grc11[i])
   
       Sa <- exp(ln_Y)
-      Sa_sigma <- array(c(Sa, sigma))
+      Sa_sigma <- array(c(Sa, sigma, 0,0))
     }
   }
   return (Sa_sigma)
@@ -172,6 +172,8 @@ YEA97SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   
   output.Sa <- array(NA, dim = c(n, m, le, he))
   output.Sd <- array(NA, dim = c(le))
+  output.sigma <- array(NA, dim = c(le))
+  output.tau <- array(NA, dim = c(le))
 #   icount=0
   for (hh in 1:he)
   {
@@ -182,7 +184,7 @@ YEA97SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
         for (t in 1:le) {
           #           print(list.p[t])
           if(list.p[t]>3) { ## only available up to 3 seconds
-            results = c(NA,NA)
+            results = c(NA,NA,0,0)
           } else {
             results <- Youngs_1997_SZ(list.mag[j], list.p[t], list.dist[k],
                                       list.zh[hh], 
@@ -193,12 +195,14 @@ YEA97SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
           
           output.Sa[k,j,t,hh] <- results[1] #*980
           output.Sd[t] <- results[2]
+          output.sigma[t] = results[3]
+          output.tau[t] = results[4]
         }
       }
     }
     # print(h.list[hh])
   }
-  
+  output.Sd = cbind(output.Sd, output.sigma, output.tau)
   return(list(output.Sa, output.Sd))
 }
 # 

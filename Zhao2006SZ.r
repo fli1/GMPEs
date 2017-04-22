@@ -1,6 +1,6 @@
 
 
-Zhao_2006 <- function(T,M,x,h,Vs30,FR,SI,SS,MS, file)
+Zhao_2006 <- function(ip,M,x,h,Vs30,FR,SI,SS,MS, file)
 {
 # % by 08/27/2013
 # % Purpose: Computes the median and dispersion of the Peak Ground
@@ -101,9 +101,9 @@ Zhao_2006 <- function(T,M,x,h,Vs30,FR,SI,SS,MS, file)
     delh = 0}
   
   # % Ground Motion Prediction Computation
-  if (length(which(period == T)) == 0) {
+  if (length(which(period == ip)) == 0) {
   
-    i_lo = sum(period<T)
+    i_lo = sum(period<ip)
     if (i_lo >= length(period))
     {
       i_lo = length(period)
@@ -120,13 +120,14 @@ Zhao_2006 <- function(T,M,x,h,Vs30,FR,SI,SS,MS, file)
   #     X = [T_lo T_hi]
   #     Y_Sa = [Sa_lo Sa_hi]
   #     Y_sigma = [sigma_lo sigma_hi]
-      Sa = interpolate(T, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])
-      sigma = interpolate(T, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
-      Sa_sigma <- array(c(Sa, sigma))
+      Sa = interpolate(ip, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])
+      sigmatotal = interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
+      sigma = interpolate(ip, T_lo, T_hi, Sa_sigma_lo[3], Sa_sigma_hi[3])
+      tau = interpolate(ip, T_lo, T_hi, Sa_sigma_lo[4], Sa_sigma_hi[4])
+      Sa_sigma <- array(c(Sa, sigmatotal, sigma, tau))
     }
-  }
-  else {
-    i = which(period == T)
+  }  else {
+    i = which(period == ip)
   
     if (MS == 1) {
       if (SS == 1) {
@@ -202,10 +203,14 @@ Zhao_2006 <- function(T,M,x,h,Vs30,FR,SI,SS,MS, file)
     r <- x + coeffs$c[i]*exp(coeffs$d[i]*M)  
     lnY <- coeffs$a[i]*M + coeffs$b[i]*x - log(r) + 
       coeffs$e[i]*(h-hc)*delh + FR + SI + SS + SSL*log(x) + Ck + lnS_MS  #### Log Sa in cm/s^2  
-    sigma <- sqrt(coeffs$s_t[i]^2 + t_t^2)  
+    sigmatotal <- sqrt(coeffs$s_t[i]^2 + t_t^2)
+    sigma = coeffs$s_t[i]
+    tau = t_t
+    
     Sa <- exp (lnY)/981    ##### Median Sa in g
-    Sa_sigma <- array(c(Sa, sigma))
+    Sa_sigma <- array(c(Sa, sigmatotal, sigma, tau))
   }
+  
   return (Sa_sigma)
 }
 
@@ -236,7 +241,8 @@ Z06SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   
   output.Sa <- array(NA, dim = c(n, m, le, he))
   output.Sd <- array(NA, dim = c(le))
-  
+  output.sigma <- array(NA, dim = c(le))
+  output.tau <- array(NA, dim = c(le))
   for (hh in 1:he)
   {
     for (j in 1:m)
@@ -245,7 +251,7 @@ Z06SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
       {
         for (t in 1:le) {
           if(list.p[t]>5) {
-            results=c(NA,NA)
+            results=c(NA,NA,0,0)
           } else {
             results <- Zhao_2006(list.p[t],list.mag[j],list.dist[k],list.zh[hh],Vs30,FR,SI,SS,MS)
             
@@ -253,11 +259,14 @@ Z06SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
           
           output.Sa[k,j,t,hh] <- results[1] #*980
           output.Sd[t] <- results[2]
+          output.sigma[t] = results[3]
+          output.tau[t] = results[4]
         }
       }
     }
     # print(h.list[hh])
   }
+  output.Sd = cbind(output.Sd, output.sigma, output.tau)
   return(list(output.Sa, output.Sd))
 }
 

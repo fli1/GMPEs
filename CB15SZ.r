@@ -135,7 +135,7 @@ CB15SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
   Sa <- exp(lnY)   #### % Median Sa in g
   sigma <- sigmaLnY
 
-  temp <-array(c(Sa, sigma)) 
+  temp <-array(c(Sa, sigma, 0,0)) 
   return (temp)
 }
 
@@ -173,7 +173,7 @@ CB15SZ.Cal <- function (ip, M, Zh, R, Fevent, Vs30,
   #     Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
       Sa <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])  ###(x,Y_Sa,T)    #########
       sigma <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
-      Sa_sigma <- array(c(Sa, sigma))
+      Sa_sigma <- array(c(Sa, sigma,0,0))
     }
   }
   if (length(which(period == ip)) > 0) {
@@ -201,7 +201,8 @@ CB15SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   
   output.Sa <- array(NA, dim = c(n, m, le, he))
   output.Sd <- array(NA, dim = c(le))
-  
+  output.sigma <- array(NA, dim = c(le))
+  output.tau <- array(NA, dim = c(le))
   for (hh in 1:he)
   {
     for (j in 1:m)
@@ -211,7 +212,7 @@ CB15SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
         for (t in 1:le) {
 #           print(list.p[t])
           if(list.p[t]>2) { ## only available up to 2 seconds
-            results = c(NA,NA)
+            results = c(NA,NA,0,0)
           } else {
             results <- CB15SZ.Cal(list.p[t], list.mag[j], list.zh[hh], 
                                   list.dist[k], Fevent, Vs30,  
@@ -220,11 +221,14 @@ CB15SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
           
           output.Sa[k,j,t,hh] <- results[1] #*980
           output.Sd[t] <- results[2]
+          output.sigma[t] = results[3]
+          output.tau[t] = results[4]
         }
       }
     }
     # print(h.list[hh])
   }
+  output.Sd = cbind(output.Sd, output.sigma, output.tau)
   return(list(output.Sa, output.Sd))
 }
 

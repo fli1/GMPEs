@@ -58,7 +58,6 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     region = "world"
     dist.metrics = "Rrup" ## Rrup 
     
-    
     ### calcualte Sa and sigma that are amplified to site condition
     output = YEA97SZ.itr (list.mag, list.dist, list.p, list.zh, 
                           flag.source, vs30, 
@@ -66,7 +65,8 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     
     ## for plotting purpose
     output.sa = output[[1]]  
-    out.temp = GetSubdata(output.sa, list.p, flag.scenario, flag.period)
+    output.sigma = output[[2]]
+    out.temp = GetSubdata(output.sa, output.sigma, list.p, flag.scenario, flag.period)
     out.Sa = cbind(out.Sa, out.temp)
     ## for test GMPE purpose
     if (flag.testGMPE ==1) {
@@ -107,8 +107,8 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     output = AB03SZ.itr (list.mag, list.dist, list.p, list.zh,
                          flag.source, vs30, Zl)
     output.sa = output[[1]]
-    
-    out.temp = GetSubdata(output.sa, list.p, flag.scenario, flag.period)
+    output.sigma = output[[2]]
+    out.temp = GetSubdata(output.sa, output.sigma, list.p, flag.scenario, flag.period)
     out.Sa = cbind(out.Sa, out.temp)
     
     ## for test GMPE purpose
@@ -139,8 +139,8 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     output = Z06SZ.itr (list.mag, list.dist, list.p, list.zh, 
                         flag.source, vs30, FR, MS)
     output.sa = output[[1]]
-    
-    out.temp = GetSubdata(output.sa, list.p, flag.scenario, flag.period)
+    output.sigma = output[[2]]
+    out.temp = GetSubdata(output.sa, output.sigma, list.p, flag.scenario, flag.period)
     out.Sa = cbind(out.Sa, out.temp)
     ## for test GMPE purpose
     if (flag.testGMPE ==1) {
@@ -169,8 +169,8 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     output = Zhao16SZ.itr (list.mag, list.dist, list.p, list.zh, 
                            flag.source, vs30, Xv, AddMedian)
     output.sa = output[[1]]
-    
-    out.temp = GetSubdata(output.sa, list.p, flag.scenario, flag.period)
+    output.sigma = output[[2]]
+    out.temp = GetSubdata(output.sa, output.sigma, list.p, flag.scenario, flag.period)
     out.Sa = cbind(out.Sa, out.temp)
     ## for test GMPE purpose
     if (flag.testGMPE ==1) {
@@ -204,7 +204,9 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     
     ## for plotting purpose
     output.sa = output[[1]]  
-    out.temp = GetSubdata(output.sa, list.p, flag.scenario, flag.period)
+    output.sigma = output[[2]] 
+    out.temp = GetSubdata(output.sa, output.sigma,
+                          list.p, flag.scenario, flag.period)
     out.Sa = cbind(out.Sa, out.temp)
     ## for test GMPE purpose
     if (flag.testGMPE ==1) {
@@ -238,7 +240,9 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
                           AddMedian)
     ## for plotting purpose
     output.sa = output[[1]]  
-    out.temp = GetSubdata(output.sa, list.p, flag.scenario, flag.period)
+    output.sigma = output[[2]] 
+    
+    out.temp = GetSubdata(output.sa, output.sigma, list.p, flag.scenario, flag.period)
     out.Sa = cbind(out.Sa, out.temp)
     ## for test GMPE purpose
     if (flag.testGMPE ==1) {
@@ -270,7 +274,9 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
                          AddMedian)
     ## for plotting purpose
     output.sa = output[[1]]  
-    out.temp = GetSubdata(output.sa, list.p, flag.scenario, flag.period)
+    output.sigma = output[[2]] 
+    
+    out.temp = GetSubdata(output.sa, output.sigma, list.p, flag.scenario, flag.period)
     out.Sa = cbind(out.Sa, out.temp)
     ## for test GMPE purpose
     if (flag.testGMPE ==1) {
@@ -303,7 +309,8 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
                                 AddMedian)
     ## for plotting purpose
     output.sa = output[[1]]  
-    out.temp = GetSubdata(output.sa, list.p, flag.scenario, flag.period)
+    output.sigma = output[[2]] 
+    out.temp = GetSubdata(output.sa,output.sigma, list.p, flag.scenario, flag.period)
     out.Sa = cbind(out.Sa, out.temp)
     ## for test GMPE purpose
     if (flag.testGMPE ==1) {

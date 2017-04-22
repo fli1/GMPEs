@@ -9,7 +9,7 @@ library(colorspace)
 ### get the data for plotting purpose
 
 
-GetSubdata <- function(output.sa, list.p,
+GetSubdata <- function(output.sa, output.sigma, list.p,
                        flag.scenario="distance", flag.period = "PGA") {
 
   # output.Sa <- array(NA, dim = c(n, m, le, he)) # distance, magnitude, period, depth
@@ -26,19 +26,32 @@ GetSubdata <- function(output.sa, list.p,
     # flag.period=0.2
     ind.p = which(list.p ==flag.period)
   }
-  
+
   if(flag.scenario=="period") {  ## by default, read the results for the 1st magnitude and depth
     out = output.sa[1,1,,1]
+    out = cbind(out, output.sigma)
   }
   
   if(flag.scenario=="distance") {  ## by default, read the results for the 1st magnitude and depth
     out = output.sa[,1,ind.p,1]
+    temp = output.sigma[ind.p,]
+    output.sigma = temp[rep(1, each=nrow(out)),]
+    
+    out = cbind(out, output.sigma)
   }
   if(flag.scenario=="magnitude") {  ## by default, read the results for the 1st magnitude and depth
     out = output.sa[1,,ind.p,1]
+    temp = output.sigma[ind.p,]
+    output.sigma = temp[rep(1, each=nrow(out)),]
+    
+    out = cbind(out, output.sigma)
   }
   if(flag.scenario=="depth") {  ## by default, read the results for the 1st magnitude and depth
     out = output.sa[1,1,ind.p,]
+    temp = output.sigma[ind.p,]
+    output.sigma = temp[rep(1, each=nrow(out)),]
+    
+    out = cbind(out, output.sigma)
   }
   return(out)
 }

@@ -1,6 +1,6 @@
 
 
-AB03SZ_Interf.subCal <- function (ip, M, R, Zh, Vs30,  
+Zhao16SZ_Interf.subCal <- function (ip, M, R, Zh, Vs30,  
                                   Xv=0)
 {
   ##
@@ -42,8 +42,8 @@ AB03SZ_Interf.subCal <- function (ip, M, R, Zh, Vs30,
   S5          = coeffs$ S5         [i]
   S6          = coeffs$ S6         [i]
   S7          = coeffs$ S7         [i]
-  sigma       = coeffs$ sigma      [i]
-  tau         = coeffs$ tau        [i]
+  sigma0       = coeffs$ sigma      [i]
+  tau0         = coeffs$ tau        [i]
   sT          = coeffs$ sT         [i]
   SC1sigmaS   = coeffs$ SC1sigmaS  [i]
   SC1tauS     = coeffs$ SC1tauS    [i]
@@ -70,6 +70,10 @@ AB03SZ_Interf.subCal <- function (ip, M, R, Zh, Vs30,
   Amax_s3     = coeffs$ Amax_s3    [i]
   Src_s3      = coeffs$ Src_s3     [i]
   Amax_s4     = coeffs$ Amax_s4    [i]
+  Src_s4   =coeffs$Src_s4  [i]
+  Ca_s4    =coeffs$Ca_s4   [i]
+  Cb_s4    =coeffs$Cb_s4   [i]
+  
   
   if (Vs30> 1100) {
     siteclass = 0
@@ -102,8 +106,8 @@ AB03SZ_Interf.subCal <- function (ip, M, R, Zh, Vs30,
   
   # //calculate the hard rock motion first
   rij = 10 + R + exp(c1 + 1.151 * Cm)
-  
-  if (deltah == 0) {
+  # print(deltah)
+  if (deltah == 0) { ## shallow
     if (M > mc) {
       fmintS = bint*Zh + gammaintS + cintS*mc + dint*(M-mc)
     }    else {
@@ -111,14 +115,15 @@ AB03SZ_Interf.subCal <- function (ip, M, R, Zh, Vs30,
     }
     lnSr = fmintS + gint * log(rij) + 
       gintLS*log(R+200) + eintS*R + eintV*Xv + gammaint - log(RSF)
-  }  else {
+  }  else { ## deep
     if (M > mc) {
-      fmintD = bint*Zh + gammaintS + cintD*mc + dint*(M-mc)  
+      fmintD = bint*Zh + cintD*mc + dint*(M-mc)  
     } else {
-      fmintD = bint*Zh + gammaintS + cintD*M
+      fmintD = bint*Zh + cintD*M
     }
     lnSr = fmintD + gint*log(rij) + gintLD*log(R+200) + 
-      eintV*Xv + gammaint - log(RSF)
+      eintV*Xv + gammaint - log(RSF) #+ log(60)
+    # print(lnSr)
   } 
   
   Sr = exp(lnSr)
@@ -217,26 +222,39 @@ AB03SZ_Interf.subCal <- function (ip, M, R, Zh, Vs30,
   
   # //calculate ground motions
   if (deltah == 0) {
-    lnY = fmintS + gint*log(rij) + gintLS*log(R+200) + eintS*R + eintV*Xv + gammaint + lnA
+    lnY = fmintS + gint*log(rij) + gintLS*log(R+200) + 
+      eintS*R + eintV*Xv + gammaint + lnA
   }  else {
-    lnY = fmintD + gint*log(rij) + gintLD*log(R+200) + eintV*Xv  + gammaint + lnA
+    lnY = fmintD + gint*log(rij) + gintLD*log(R+200) + 
+      eintV*Xv  + gammaint + lnA #+log(60)+log(0.85) ##!!!! temporary solution 
   }
   
   # //standard deviation
   if (siteclass  == 1) {
     sigmaLnY = SC1ST
+    sigma = SC1sigmaS
+    tau = SC1tauS
   }  else if (siteclass  == 2) {
     sigmaLnY = SC2ST
+    sigma = SC2sigmaS
+    tau = SC2tauS
   } else if (siteclass  == 3) {
     sigmaLnY = SC3ST
+    sigma = SC3sigmaS
+    tau = SC3tauS
   } else if (siteclass  == 4) {
     sigmaLnY = SC4ST
+    sigma = SC4sigmaS
+    tau = SC4tauS
   } else {
     sigmaLnY = sT
+    sigma = sigma0
+    tau = tau0
   }
   Sa = exp(lnY)
-  sigma = sigmaLnY
-  temp <-array(c(Sa, sigma)) 
+  sigmatotal = sigmaLnY
+  
+  temp <-array(c(Sa, sigmatotal, sigma, tau)) 
   return (temp)
 }
 
@@ -252,24 +270,26 @@ Zhao16SZ_Interf.Cal <- function (ip, M, R, Zh, Vs30, Xv,AddMedian)
     {
       i_lo <- length(period)
       T_lo <- period[i_lo]
-      Sa_sigma <- AB03SZ_Interf.subCal(T_lo,M,R, Zh,Vs30,Xv)
+      Sa_sigma <- Zhao16SZ_Interf.subCal(T_lo,M,R, Zh,Vs30,Xv)
     }
     else
     {
       T_lo <- period[i_lo]
       T_hi <- period[i_lo + 1]      
-      Sa_sigma_hi <- AB03SZ_Interf.subCal(T_hi,M,R, Zh,Vs30,Xv)
-      Sa_sigma_lo <- AB03SZ_Interf.subCal(T_lo,M,R, Zh,Vs30,Xv)
+      Sa_sigma_hi <- Zhao16SZ_Interf.subCal(T_hi,M,R, Zh,Vs30,Xv)
+      Sa_sigma_lo <- Zhao16SZ_Interf.subCal(T_lo,M,R, Zh,Vs30,Xv)
       #     x <- array(c(T_lo, T_hi))
       #     Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
       #     Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
       Sa <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])  ##(x,Y_Sa,T)    #########
-      sigma <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
-      Sa_sigma <- array(c(Sa, sigma))
+      sigmatotal <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
+      sigma = interpolate(ip, T_lo, T_hi, Sa_sigma_lo[3], Sa_sigma_hi[3])
+      tau = interpolate(ip, T_lo, T_hi, Sa_sigma_lo[4], Sa_sigma_hi[4])
+      Sa_sigma <- array(c(Sa, sigmatotal, sigma, tau))
     }
   }
   if (length(which(period == ip)) > 0) {
-    Sa_sigma <- AB03SZ_Interf.subCal(ip,M,R, Zh,Vs30,Xv)
+    Sa_sigma <- Zhao16SZ_Interf.subCal(ip,M,R, Zh,Vs30,Xv)
   }
   Sa_sigma[1] = Sa_sigma[1]+AddMedian
   return (Sa_sigma)
@@ -277,7 +297,7 @@ Zhao16SZ_Interf.Cal <- function (ip, M, R, Zh, Vs30, Xv,AddMedian)
 
 
 
-AB03SZ_Inslab.subCal <- function (ip, M, R, Zh, Vs30,  
+Zhao16SZ_Inslab.subCal <- function (ip, M, R, Zh, Vs30,  
                                   Xv=0)
 {
   ##
@@ -315,8 +335,8 @@ AB03SZ_Inslab.subCal <- function (ip, M, R, Zh, Vs30,
   S2       =coeffs$S2      [i]
   S3       =coeffs$S3      [i]
   S4       =coeffs$S4      [i]
-  sigma    =coeffs$sigma   [i]
-  tau      =coeffs$tau     [i]
+  sigma0    =coeffs$sigma   [i]
+  tau0      =coeffs$tau     [i]
   sT       =coeffs$sT      [i]
   Amax_s1  =coeffs$Amax_s1 [i]
   Src_s1   =coeffs$Src_s1  [i]
@@ -471,18 +491,30 @@ AB03SZ_Inslab.subCal <- function (ip, M, R, Zh, Vs30,
   # //standard deviation
   if (siteclass  == 1) {
     sigmaLnY = sigmaST1
+    sigma = sigmaS1
+    tau = tauS1
   }  else if (siteclass  == 2) {
     sigmaLnY = sigmaST2
+    sigma = sigmaS2
+    tau = tauS2
   } else if (siteclass  == 3) {
     sigmaLnY = sigmaST3
+    sigma = sigmaS3
+    tau = tauS3
   } else if (siteclass  == 4) {
     sigmaLnY = sigmaST4
+    sigma = sigmaS4
+    tau = tauS4
   } else {
     sigmaLnY = sT
+    sigma = sigma0
+    tau = tau0
   }
   Sa = exp(lnY)
-  sigma = sigmaLnY
-  temp <-array(c(Sa, sigma)) 
+  sigmatotal = sigmaLnY
+  
+  temp <-array(c(Sa, sigmatotal, sigma, tau))
+  
   return (temp)
 }
 ####
@@ -497,24 +529,27 @@ Zhao16SZ_Inslab.Cal <- function (ip, M, R, Zh, Vs30, Xv,AddMedian)
     {
       i_lo <- length(period)
       T_lo <- period[i_lo]
-      Sa_sigma <- AB03SZ_Inslab.subCal(T_lo,M,R, Zh,Vs30,Xv)
+      Sa_sigma <- Zhao16SZ_Inslab.subCal(T_lo,M,R, Zh,Vs30,Xv)
     }
     else
     {
       T_lo <- period[i_lo]
       T_hi <- period[i_lo + 1]      
-      Sa_sigma_hi <- AB03SZ_Inslab.subCal(T_hi,M,R, Zh,Vs30,Xv)
-      Sa_sigma_lo <- AB03SZ_Inslab.subCal(T_lo,M,R, Zh,Vs30,Xv)
+      Sa_sigma_hi <- Zhao16SZ_Inslab.subCal(T_hi,M,R, Zh,Vs30,Xv)
+      Sa_sigma_lo <- Zhao16SZ_Inslab.subCal(T_lo,M,R, Zh,Vs30,Xv)
       #     x <- array(c(T_lo, T_hi))
       #     Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
       #     Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
       Sa <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])  ##(x,Y_Sa,T)    #########
+      sigmatotal <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
       sigma <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
-      Sa_sigma <- array(c(Sa, sigma))
+      tau <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
+      
+      Sa_sigma <- array(c(Sa, sigmatotal, sigma, tau))
     }
   }
   if (length(which(period == ip)) > 0) {
-    Sa_sigma <- AB03SZ_Inslab.subCal(ip,M,R, Zh,Vs30,Xv)
+    Sa_sigma <- Zhao16SZ_Inslab.subCal(ip,M,R, Zh,Vs30,Xv)
   }
   Sa_sigma[1] = Sa_sigma[1]+AddMedian
   return (Sa_sigma)
@@ -531,6 +566,8 @@ Zhao16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   he = length(list.zh)
   output.Sa <- array(NA, dim = c(n, m, le, he))
   output.Sd <- array(NA, dim = c(le))
+  output.sigma <- array(NA, dim = c(le))
+  output.tau <- array(NA, dim = c(le))
   
   if (flag.source=="interface") {
     Zt = 0
@@ -544,7 +581,7 @@ Zhao16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
             #         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[he], ListDist[k], Zt, Vs30, Zl)
             #           dist.temp <- sqrt(list.dist[k]^2 + list.zh[hh]^2)
             dist.temp <- list.dist[k]
-            if(list.p[t]>1/.33) {
+            if(list.p[t]>5) {
               results=c(NA,NA)
             } else {
               results <- Zhao16SZ_Interf.Cal(list.p[t], list.mag[j], 
@@ -553,6 +590,8 @@ Zhao16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
             }
             output.Sa[k,j,t,hh] <- results[1] #*980
             output.Sd[t] <- results[2]
+            output.sigma[t] = results[3]
+            output.tau[t] = results[4]
           }
         }
       }
@@ -570,21 +609,23 @@ Zhao16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
             #         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[he], ListDist[k], Zt, Vs30, Zl)
             #           dist.temp <- sqrt(list.dist[k]^2 + list.zh[hh]^2)
             dist.temp <- list.dist[k]
-            if(list.p[t]>1/.33) {
-              results=c(NA,NA)
+            if(list.p[t]>5) {
+              results=c(NA,NA,0,0)
             } else {
               results <- Zhao16SZ_Inslab.Cal(list.p[t], list.mag[j], 
                                              dist.temp, list.zh[hh], Vs30, Xv,AddMedian)
             }
             output.Sa[k,j,t,hh] <- results[1] #*980
             output.Sd[t] <- results[2]
+            output.sigma[t] = results[3]
+            output.tau[t] = results[4]
           }
         }
       }
       # print(h.list[hh])
     }
   } 
-  
+  output.Sd = cbind(output.Sd, output.sigma, output.tau)
   return(list(output.Sa, output.Sd))
 }
 

@@ -95,21 +95,22 @@ IdiniEA16SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
   delta_c2 = coeffs$delta_c2[i]
   delta_c3 = coeffs$delta_c3[i]
 
-sigma_t= coeffs$sigma_t[i]
-  
-if(T_star<=0.01) {
-  sT = 0
-}else if(T_star<=0.2) {
-  sT = coeffs$sII[i]
-} else if(T_star<=0.4) {
-  sT = coeffs$sIII[i]
-} else if(T_star<=0.8) {
-  sT = coeffs$sIV[i]
-} else  {
-  sT = coeffs$sV[i]
-}
-  ## the SI and SVI cases were not coded here
+  sigma_t= coeffs$sigma_t[i]
+  sigma= coeffs$sigma_r[i]
+  tau= coeffs$sigma_e[i]
 
+  if(T_star<=0.01) {
+    sT = 0
+  }else if(T_star<=0.2) {
+    sT = coeffs$sII[i]
+  } else if(T_star<=0.4) {
+    sT = coeffs$sIII[i]
+  } else if(T_star<=0.8) {
+    sT = coeffs$sIV[i]
+  } else  {
+    sT = coeffs$sV[i]
+  }
+  ## the SI and SVI cases were not coded here
   
   h0 = 50
   Mr = 5
@@ -137,9 +138,9 @@ if(T_star<=0.01) {
   
   
   Sa <- exp(lnY)   #### % Median Sa in g
-  sigma <- sigmaLnY
+  sigmatotal <- sigmaLnY
 
-  temp <-array(c(Sa, sigma)) 
+  temp <-array(c(Sa, sigmatotal, sigma, tau)) 
   return (temp)
 }
 
@@ -176,8 +177,10 @@ IdiniEtAl16SZ.Cal <- function (ip, M, Zh, R, Fevent, Vs30,T_star,
   #     Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
   #     Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
       Sa <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])  ###(x,Y_Sa,T)    #########
+      sigmatotal <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
       sigma <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
-      Sa_sigma <- array(c(Sa, sigma))
+      tau <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
+      Sa_sigma <- array(c(Sa, sigmatotal, sigma, tau))
     }
   }
   if (length(which(period == ip)) > 0) {
@@ -205,6 +208,8 @@ IdiniEtAl16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   
   output.Sa <- array(NA, dim = c(n, m, le, he))
   output.Sd <- array(NA, dim = c(le))
+  output.sigma <- array(NA, dim = c(le))
+  output.tau <- array(NA, dim = c(le))
   icount=0
   for (hh in 1:he)
   {
@@ -215,7 +220,7 @@ IdiniEtAl16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
         for (t in 1:le) {
 #           print(list.p[t])
           if(list.p[t]>10) { ## only available up to 10 seconds
-            results = c(NA,NA)
+            results = c(NA,NA,0,0)
           } else {
             results <- IdiniEtAl16SZ.Cal(list.p[t], list.mag[j], list.zh[hh], 
                                   list.dist[k], Fevent, Vs30,  T_star,
@@ -225,6 +230,8 @@ IdiniEtAl16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
           
           output.Sa[k,j,t,hh] <- results[1] #*980
           output.Sd[t] <- results[2]
+          output.sigma[t] = results[3]
+          output.tau[t] = results[4]
         }
       }
     }
@@ -232,6 +239,7 @@ IdiniEtAl16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   }
 # print(icount)
 # print(paste0("depth, mag,dist,period",c(he, m,n,le)))
+  output.Sd = cbind(output.Sd, output.sigma, output.tau)
   return(list(output.Sa, output.Sd))
 }
 

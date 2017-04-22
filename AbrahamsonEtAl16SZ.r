@@ -153,8 +153,6 @@ AEA16SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
     f_site_PGA = theta12*log(Vs_star/Vlin) + b*n* log(Vs_star/Vlin)
   }
   
-
-  
   lnY =  theta1 + theta4 * Delta_C1 
   lnY = lnY + (theta2+ theta14*F_event + theta3*(M-7.8))*log(R+C4*exp((M-6)*theta9)) + theta6*R 
   lnY = lnY + theta10*F_event + f_mag_M + f_depth_Zh + f_FABA_R + f_site_PGA
@@ -167,9 +165,9 @@ AEA16SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
   }
   
   Sa <- exp(lnY)   #### % Median Sa in g
-  sigma <- sigmaLnY
-
-  temp <-array(c(Sa, sigma)) 
+  sigmatotal <- sigmaLnY
+  
+  temp <-array(c(Sa, sigmatotal, fi, tau)) 
   return (temp)
 }
 
@@ -206,8 +204,10 @@ AEA16SZ.Cal <- function (ip, M, Zh, R, Fevent, Vs30,
   #     Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
   #     Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
       Sa <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])  ###(x,Y_Sa,T)    #########
-      sigma <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
-      Sa_sigma <- array(c(Sa, sigma))
+      sigmatotal <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
+      sigma <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[3], Sa_sigma_hi[3])
+      tau <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[4], Sa_sigma_hi[4])
+      Sa_sigma <- array(c(Sa, sigmatotal, sigma, tau))
     }
   }
   if (length(which(period == ip)) > 0) {
@@ -236,6 +236,8 @@ AEA16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   
   output.Sa <- array(NA, dim = c(n, m, le, he))
   output.Sd <- array(NA, dim = c(le))
+  output.sigma <- array(NA, dim = c(le))
+  output.tau <- array(NA, dim = c(le))
   
   for (hh in 1:he)
   {
@@ -252,11 +254,14 @@ AEA16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
           
           output.Sa[k,j,t,hh] <- results[1] #*980
           output.Sd[t] <- results[2]
+          output.sigma[t] = results[3]
+          output.tau[t] = results[4]
         }
       }
     }
     # print(h.list[hh])
   }
+  output.Sd = cbind(output.Sd, output.sigma, output.tau)
   return(list(output.Sa, output.Sd))
 }
 

@@ -2,7 +2,7 @@
 # library(nga)
 # library(ggplot2)
 # library(scales)
-AB03SZ.subCal <- function (T, M, h, Df, Zt, Vs30, Zl)
+AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, Zl)
 {
 #   
   
@@ -137,17 +137,17 @@ AB03SZ.subCal <- function (T, M, h, Df, Zt, Vs30, Zl)
     log_PGArx <- c1 + c2_it[1]*M + c3_it[1]*h + c4_it[1]*R - g*log10(R);
     PGArx <- 10^(log_PGArx);
     
-    if (PGArx <= 100 | (1/T) <= 1) {
+    if (PGArx <= 100 | (1/ip) <= 1) {
       sl <- 1}
     
-    if ((1/T) > 1 & (1/T) < 2) {
+    if ((1/ip) > 1 & (1/ip) < 2) {
       if (PGArx < 500 & PGArx > 100) {
-        sl <- 1 - ((1/T)-1)*(PGArx - 100)/400}
+        sl <- 1 - ((1/ip)-1)*(PGArx - 100)/400}
       if (PGArx >= 500) {
-        sl <- 1 - ((1/T)-1)}
+        sl <- 1 - ((1/ip)-1)}
     }
     
-    if ((1/T) >= 2) {
+    if ((1/ip) >= 2) {
       if (PGArx < 500 & PGArx > 100) {
         sl <- 1 - (PGArx - 100)/400}
       if (PGArx >= 500) {
@@ -166,20 +166,20 @@ AB03SZ.subCal <- function (T, M, h, Df, Zt, Vs30, Zl)
     log_PGArx <- c1 + c2_in[1]*M + c3_in[1]*h + c4_in[1]*R - g*log10(R);
     PGArx <- 10^(log_PGArx);
   
-    if (PGArx <= 100 | (1/T) <= 1) {
+    if (PGArx <= 100 | (1/ip) <= 1) {
       sl <- 1}
   
-    if ((1/T) >= 2) {
+    if ((1/ip) >= 2) {
       if (PGArx < 500 & PGArx > 100) {
         sl <- 1 - (PGArx - 100)/400}
       if (PGArx >= 500) {
         sl <- 0}
     }
-    if ((1/T) < 2 & (1/T) > 1) {
+    if ((1/ip) < 2 & (1/ip) > 1) {
       if (PGArx < 500 & PGArx > 100) {
-        sl <- 1 - ((1/T)-1)*(PGArx - 100)/400}
+        sl <- 1 - ((1/ip)-1)*(PGArx - 100)/400}
       if (PGArx >= 500) {
-        sl <- 1 - ((1/T)-1)}
+        sl <- 1 - ((1/ip)-1)}
     }
   }
   
@@ -198,7 +198,7 @@ AB03SZ.subCal <- function (T, M, h, Df, Zt, Vs30, Zl)
 #       sigma <- interp1(x,Y_sigma,T)   #################
 #     }
 #     else {
-      i <- which(period == T)  
+      i <- which(period == ip)  
   
       if (Zl == 0) {
         c1 <- c1_it[i]}
@@ -213,7 +213,9 @@ AB03SZ.subCal <- function (T, M, h, Df, Zt, Vs30, Zl)
       sigma_10 <- sqrt((sigma1_it[i])^2 + (sigma2_it[i])^2)
       
       Sa <- 10.^(log_10_Y)/981 ## % Median Sa in g
-      sigma <- log(10.^sigma_10)
+      sigmatotal <- log(10.^sigma_10)
+      sigma = log(10.^sigma1_it[i])
+      tau = log(10.^sigma2_it[i])
 #     }
   }
   if (Zt == 1) {
@@ -232,7 +234,7 @@ AB03SZ.subCal <- function (T, M, h, Df, Zt, Vs30, Zl)
 #       sigma <- interp1(x,Y_sigma,T)
 #     }
 #     else {
-      i <- which(period == T)   
+      i <- which(period == ip)   
   
       if (Zl == 0) {
         c1 <- c1_in[i]}
@@ -247,19 +249,21 @@ AB03SZ.subCal <- function (T, M, h, Df, Zt, Vs30, Zl)
       sigma_10 <- sqrt((sigma1_in[i])^2 + (sigma2_in[i])^2)
       
       Sa <- 10.^(log_10_Y)/981   #### % Median Sa in g
-      sigma <- log(10.^sigma_10)
+      sigmatotal <- log(10.^sigma_10)
+      sigma = log(10.^sigma1_it[i])
+      tau = log(10.^sigma2_it[i])
 #     }
   }
-  temp <-array(c(Sa, sigma)) 
+  temp <-array(c(Sa, sigmatotal, sigma, tau)) 
   return (temp)
 }
 
 
-AB03SZ.Cal <- function (T, M, h, Df, Zt, Vs30, Zl)
+AB03SZ.Cal <- function (ip, M, h, Df, Zt, Vs30, Zl)
 {
   period <- array(c(0.01, 0.04, 0.1, 0.2, 0.4, 1, 2, 1/0.33))
-  if (length(which(period == T)) == 0) {
-    i_lo <- sum(period<T)   ########
+  if (length(which(period == ip)) == 0) {
+    i_lo <- sum(period<ip)   ########
     if (i_lo>=length(period))
     {
       i_lo <- length(period)
@@ -277,13 +281,15 @@ AB03SZ.Cal <- function (T, M, h, Df, Zt, Vs30, Zl)
   #     x <- array(c(T_lo, T_hi))
   #     Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
   #     Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
-      Sa <- interpolate(T, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])  ###(x,Y_Sa,T)    #########
-      sigma <- interpolate(T, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
-      Sa_sigma <- array(c(Sa, sigma))
+      Sa <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[1], Sa_sigma_hi[1])  ###(x,Y_Sa,T)    #########
+      sigmatotal <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[2], Sa_sigma_hi[2])
+      sigma <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[3], Sa_sigma_hi[3])
+      tau <- interpolate(ip, T_lo, T_hi, Sa_sigma_lo[4], Sa_sigma_hi[4])
+      Sa_sigma <- array(c(Sa, sigmatotal, sigma, tau))
     }
   }
-  if (length(which(period == T)) > 0) {
-    Sa_sigma <- AB03SZ.subCal(T,M,h,Df,Zt,Vs30,Zl)
+  if (length(which(period == ip)) > 0) {
+    Sa_sigma <- AB03SZ.subCal(ip,M,h,Df,Zt,Vs30,Zl)
   }
   return (Sa_sigma)
 }
@@ -304,7 +310,8 @@ AB03SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   } 
   output.Sa <- array(NA, dim = c(n, m, le, he))
   output.Sd <- array(NA, dim = c(le))
-  
+  output.sigma <- array(NA, dim = c(le))
+  output.tau <- array(NA, dim = c(le))
   for (hh in 1:he)
   {
     for (j in 1:m)
@@ -316,18 +323,21 @@ AB03SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
 #           dist.temp <- sqrt(list.dist[k]^2 + list.zh[hh]^2)
           dist.temp <- list.dist[k]
           if(list.p[t]>1/.33) {
-            results=c(NA,NA)
+            results=c(NA,NA,0,0)
           } else {
             results <- AB03SZ.Cal(list.p[t], list.mag[j], list.zh[hh], 
                                   dist.temp, Zt, Vs30, Zl)
           }
           output.Sa[k,j,t,hh] <- results[1] #*980
           output.Sd[t] <- results[2]
+          output.sigma[t] = results[3]
+          output.tau[t] = results[4]
         }
       }
     }
     # print(h.list[hh])
   }
+  output.Sd = cbind(output.Sd, output.sigma, output.tau)
   return(list(output.Sa, output.Sd))
 }
 
