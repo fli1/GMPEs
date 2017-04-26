@@ -237,20 +237,22 @@ MBR17SZ.Cal <- function (ip, M, Zh, R, Fevent, Vs30,
 }
 
 #####
-MBR17SZ.itr <- function (list.mag, list.dist, list.p, list.zh, 
+MBR17SZ.itr <- function (list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
                          flag.source, Vs30=760, F_DeltaC1=0, 
                          Delta_C1_input=-0.3, F_FABA=0,
                          F_sigma=0,
                          AddMedian=0) {
   m <- length(list.mag)
-  n <- length(list.dist)
+  n <- length(list.rupdist)
   le <- length(list.p)
   he = length(list.zh)
   
   if(flag.source=="interface") {
     Fevent=0
+    list.dist=list.rupdist
   } else{
     Fevent=1
+    list.dist=list.hypodist
   }
   
   output.Sa <- array(NA, dim = c(n, m, le, he))

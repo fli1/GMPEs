@@ -1,6 +1,6 @@
 
 
-Zhao_2006 <- function(ip,M,x,h,Vs30,FR,SI,SS,MS, file)
+Zhao_2006 <- function(ip,M,x,h,Vs30,FR,SI,SS,MS)
 {
 # % by 08/27/2013
 # % Purpose: Computes the median and dispersion of the Peak Ground
@@ -131,78 +131,41 @@ Zhao_2006 <- function(ip,M,x,h,Vs30,FR,SI,SS,MS, file)
   
     if (MS == 1) {
       if (SS == 1) {
-        
         Mc = 6.5
         Pst = coeffs$Ps[i]
         Qst = coeffs$Qs[i]
         Wst = coeffs$Ws[i]
         t_t = coeffs$t_s[i]
-        lnS_MS = Pst*(M - Mc) + Qst*((M - Mc)^2) + Wst
-      }
-      else if (FR == 1) {
-        Mc = 6.3
-        Pst = 0.0
-        Qst = coeffs$Qc[i]
-        Wst = coeffs$Wc[i]
-        t_t = coeffs$t_c[i]
-        lnS_MS = Pst*(M - Mc) + Qst*((M - Mc)^2) + Wst
-      }
-      else if (SI == 1) {
+      } else if (SI == 1) {
         Mc = 6.3
         Pst = 0.0
         Qst = coeffs$QI[i]
         Wst = coeffs$WI[i]
         t_t = coeffs$t_I[i]
-        lnS_MS = Pst*(M - Mc) + Qst*(M - Mc)^2 + Wst
-      }
-      else {
+      } else {
         Mc = 6.3
         Pst = 0.0
         Qst = coeffs$Qc[i]
         Wst = coeffs$Wc[i]
         t_t = coeffs$t_c[i]
-        lnS_MS = Pst*(M - Mc) + Qst*((M - Mc)^2) + Wst
       }
-    }
-    else if (MS == 0) {
+      lnS_MS = Pst*(M - Mc) + Qst*((M - Mc)^2) + Wst
+    }  else if (MS == 0) {
       t_t = coeffs$t_t[i]
       lnS_MS = 0
     }
-    if ( FR == 1) {
-      FR = coeffs$Fr[i]
-      SI = 0
-      SS = 0
-      SSL = 0
-    }
-    else if (SI == 1) {
     
-      FR = 0
-      SI = coeffs$Si[i]
-      SS = 0
-      SSL =0
-    }
-    else if (SS == 1) {
-      FR = 0
-      SI = 0
-      SS = coeffs$Ss[i]
-      SSL = coeffs$Ssl[i]
-    }
-    else {
-      FR = 0
-      SI = 0
-      SS = 0
-      SSL = 0
-    }  
     if (Vs30 <= 200) {              Ck <- coeffs$C4[i] }
     if (Vs30 > 200 & Vs30 <= 300) { Ck <- coeffs$C3[i]}
     if (Vs30 > 300 & Vs30 <= 600) { Ck <- coeffs$C2[i] }
-    if (Vs30 > 600 & Vs30 < 1100) { Ck <- coeffs$C1[i] }
-    if (Vs30 >= 1100) {  Ck <- coeffs$CH[i]}
-    
+    if (Vs30 > 600 & Vs30 <= 1100) { Ck <- coeffs$C1[i] }
+    if (Vs30 > 1100) {  Ck <- coeffs$CH[i]}
     
     r <- x + coeffs$c[i]*exp(coeffs$d[i]*M)  
     lnY <- coeffs$a[i]*M + coeffs$b[i]*x - log(r) + 
-      coeffs$e[i]*(h-hc)*delh + FR + SI + SS + SSL*log(x) + Ck + lnS_MS  #### Log Sa in cm/s^2  
+      coeffs$e[i]*(h-hc)*delh + FR*coeffs$Sr[i] + 
+      SI*coeffs$Si[i] + SS*coeffs$Ss[i] + 
+      SS*coeffs$SsL[i]*log(x) + Ck + lnS_MS  #### Log Sa in cm/s^2  
     sigmatotal <- sqrt(coeffs$s_t[i]^2 + t_t^2)
     sigma = coeffs$s_t[i]
     tau = t_t
@@ -215,21 +178,22 @@ Zhao_2006 <- function(ip,M,x,h,Vs30,FR,SI,SS,MS, file)
 }
 
 
-Z06SZ.itr <- function (list.mag, list.dist, list.p, list.zh, 
-                       flag.source="interface", Vs30=760, FR=0, MS=0) {
+Z06SZ.itr <- function (list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
+                       flag.source="interface", Vs30=761, FR=0, MS=0) {
   
   # FR <- 0  # not reverse fault
-  
   SI <- 0  # interface
   SS <- 1  # not intraslab
   
   if(flag.source=="interface"){
     SI <- 1  # interface
     SS <- 0  # not intraslab
+    list.dist = list.rupdist
   }
   if(flag.source=="inslab"){
     SI <- 0  # not interface
     SS <- 1  # intraslab
+    list.dist = list.hypodist
   }
   
   # MS <- 0  # include the magnitude item
@@ -243,6 +207,11 @@ Z06SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   output.Sd <- array(NA, dim = c(le))
   output.sigma <- array(NA, dim = c(le))
   output.tau <- array(NA, dim = c(le))
+  hh=1
+  j=1
+  k=1
+  t=2
+  
   for (hh in 1:he)
   {
     for (j in 1:m)
@@ -253,8 +222,8 @@ Z06SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
           if(list.p[t]>5) {
             results=c(NA,NA,0,0)
           } else {
-            results <- Zhao_2006(list.p[t],list.mag[j],list.dist[k],list.zh[hh],Vs30,FR,SI,SS,MS)
-            
+            results <- Zhao_2006(list.p[t],list.mag[j],list.dist[k],
+                                 list.zh[hh],Vs30,FR,SI,SS,MS)
           }
           
           output.Sa[k,j,t,hh] <- results[1] #*980

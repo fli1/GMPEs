@@ -135,7 +135,8 @@ IdiniEA16SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
   lnY = log(10^log10Y)
     
   sigmaLnY = log(10^sigma_t)
-  
+  sigma = log(10^sigma)
+  tau = log(10^tau)
   
   Sa <- exp(lnY)   #### % Median Sa in g
   sigmatotal <- sigmaLnY
@@ -191,19 +192,23 @@ IdiniEtAl16SZ.Cal <- function (ip, M, Zh, R, Fevent, Vs30,T_star,
 }
 
 #####
-IdiniEtAl16SZ.itr <- function (list.mag, list.dist, list.p, list.zh, 
+IdiniEtAl16SZ.itr <- function (list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
                         flag.source, Vs30=760, T_star,
                         AddMedian=0) {
   m <- length(list.mag)
-  n <- length(list.dist)
+  n <- length(list.rupdist)
   le <- length(list.p)
   he = length(list.zh)
   
   if(flag.source=="interface") {
     Fevent = 0
+    list.dist = list.rupdist
+    list.dist[list.mag<7.7] = list.hypodist[list.mag<7.7]
+    
   } 
   if(flag.source=="inslab"){
     Fevent = 1
+    list.dist = list.hypodist
   }
   
   output.Sa <- array(NA, dim = c(n, m, le, he))

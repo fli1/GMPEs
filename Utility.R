@@ -7,6 +7,7 @@ library(colorspace)
 
 
 ### get the data for plotting purpose
+geomean <- function(x) exp(sum(log(x[x > 0])) / length(x[x > 0]))
 
 
 GetSubdata <- function(output.sa, output.sigma, list.p,

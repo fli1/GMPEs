@@ -1,5 +1,5 @@
-GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh, 
-                      vs30,
+GMPE.cal <- function (list.gmpe,list.mag, list.rupdist, list.hypodist,
+                      list.p, list.zh, vs30,
                       flag.source,  
                       F_FABA, F_DeltaC1=0, Delta_C1_input=-0.3, F_sigma=0, ##AEA16 & MBR17SZ
                       region="world",  ##AB03
@@ -55,11 +55,11 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     # fout.name = paste0(title,".csv")
     descrpt = "Youngs et al. (1997)"
     list.GMPEs = c(list.GMPEs, descrpt)
-    region = "world"
+    # region = "world"
     dist.metrics = "Rrup" ## Rrup 
     
     ### calcualte Sa and sigma that are amplified to site condition
-    output = YEA97SZ.itr (list.mag, list.dist, list.p, list.zh, 
+    output = YEA97SZ.itr (list.mag, list.rupdist, list.p, list.zh, 
                           flag.source, vs30, 
                           AddMedian)
     
@@ -90,10 +90,10 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     descrpt = "Atkinson and Boore (2003)"
     
     list.GMPEs = c(list.GMPEs, descrpt)
-    region = "world"
+    # region = "world"
     dist.metrics = "Rrup"
     
-    if(region == "world"){
+    if(region == "World"){
       Zl=0
     }
     if(region == "Japan"){
@@ -104,7 +104,8 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     }
     
     ### calcualte Sa and sigma that are amplified to site condition
-    output = AB03SZ.itr (list.mag, list.dist, list.p, list.zh,
+    # print(region)
+    output = AB03SZ.itr (list.mag, list.rupdist, list.p, list.zh,
                          flag.source, vs30, Zl)
     output.sa = output[[1]]
     output.sigma = output[[2]]
@@ -132,11 +133,12 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     # fout.name = paste0(title,".csv")
     descrpt = "Zhao et al. (2006)"
     list.GMPEs = c(list.GMPEs, descrpt)
-    region = ""
+    # region = ""
     dist.metrics = "Rx" ## a mixture
     
+    
     ### calcualte Sa and sigma that are amplified to site condition
-    output = Z06SZ.itr (list.mag, list.dist, list.p, list.zh, 
+    output = Z06SZ.itr (list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
                         flag.source, vs30, FR, MS)
     output.sa = output[[1]]
     output.sigma = output[[2]]
@@ -162,11 +164,11 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     # fout.name = paste0(title,".csv")
     descrpt = "Zhao et al. (2016)"
     list.GMPEs = c(list.GMPEs, descrpt)
-    region = ""
+    # region = ""
     dist.metrics = "Rx" ## a mixture
     
     ### calcualte Sa and sigma that are amplified to site condition
-    output = Zhao16SZ.itr (list.mag, list.dist, list.p, list.zh, 
+    output = Zhao16SZ.itr (list.mag, list.rupdist, list.hypodist, list.p, list.zh-30, 
                            flag.source, vs30, Xv, AddMedian)
     output.sa = output[[1]]
     output.sigma = output[[2]]
@@ -192,11 +194,11 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     # fout.name = paste0(title,".csv")
     descrpt = "Abrahamson et al. (2016)"
     list.GMPEs = c(list.GMPEs, descrpt)
-    region = "global"
-    dist.metrics = "Rrup" ## Rrup for interface and Rhypo for inslab
+    # region = "global"
+    dist.metrics = "R mixed" ## Rrup for interface and Rhypo for inslab
     
     ### calcualte Sa and sigma that are amplified to site condition
-    output = AEA16SZ.itr (list.mag, list.dist, list.p, list.zh, 
+    output = AEA16SZ.itr (list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
                           flag.source, vs30, F_DeltaC1, 
                           Delta_C1_input, F_FABA,
                           F_sigma,
@@ -229,11 +231,11 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     # fout.name = paste0(title,".csv")
     descrpt = "Montalva et al. (2017)"
     list.GMPEs = c(list.GMPEs, descrpt)
-    region = "Chile"
-    dist.metrics = "Rrup" ## Rrup for interface and Rhypo for inslab
+    # region = "Chile"
+    dist.metrics = "R mixed" ## Rrup for interface and Rhypo for inslab
     
     ### calcualte Sa and sigma that are amplified to site condition
-    output = MBR17SZ.itr (list.mag, list.dist, list.p, list.zh, 
+    output = MBR17SZ.itr (list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
                           flag.source, vs30, F_DeltaC1, 
                           Delta_C1_input, F_FABA,
                           F_sigma,
@@ -265,11 +267,11 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     # fout.name = paste0(title,".csv")
     descrpt = "Contreras and Boroschek (2015)"
     list.GMPEs = c(list.GMPEs, descrpt)
-    region = "Chile"
+    # region = "Chile"
     dist.metrics = "Rrup" ## Rrup for interface and Rhypo for inslab
     
     ### calcualte Sa and sigma that are amplified to site condition
-    output = CB15SZ.itr (list.mag, list.dist, list.p, list.zh, 
+    output = CB15SZ.itr (list.mag, list.hypodist, list.p, list.zh, 
                          flag.source, vs30, 
                          AddMedian)
     ## for plotting purpose
@@ -300,11 +302,18 @@ GMPE.cal <- function (list.gmpe,list.mag, list.dist, list.p, list.zh,
     # fout.name = paste0(title,".csv")
     descrpt = "Idini et al. (2016)"
     list.GMPEs = c(list.GMPEs, descrpt)
-    region = "Chile"
-    dist.metrics = "Rrup" ## Rrup for interface and Rhypo for inslab
+    # region = "Chile"
+    dist.metrics = "R mixed" ## Rrup for interface and Rhypo for inslab
+    
+    ### these were defined by FL for comparison purpose; NOT from the original paper
+    if(vs30>760) {T_star = 0.01}   ## rock
+    else if(vs30>360) {T_star = 0.1}
+    else if(vs30>180) {T_star = 0.3}
+    else if(vs30>100) {T_star = 0.5}
+    else {T_star = 1}
     
     ### calcualte Sa and sigma that are amplified to site condition
-    output = IdiniEtAl16SZ.itr (list.mag, list.dist, list.p, list.zh, 
+    output = IdiniEtAl16SZ.itr (list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
                                 flag.source, vs30, T_star,
                                 AddMedian)
     ## for plotting purpose

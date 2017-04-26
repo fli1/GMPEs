@@ -2,9 +2,9 @@
 # library(nga)
 # library(ggplot2)
 # library(scales)
-AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, Zl)
+AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, ZL)
 {
-#   
+# print(ZL)
   
 #   % Purpose: Computes the mean and standard deviation of the PGA
 #   % or psuedoacceleration, PSA, 5% damping. Additional modifications are also
@@ -43,9 +43,9 @@ AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, Zl)
 #   %                                 Zt = 1 for intraslab (in-slab) events
 #   % Vs30 = Shear Wave Velocity averaged over the top 30 meters of soil of the
 #   %      soil profile (m/sec)
-#   % Zl = Cascadia or Japan indicator: Zl = 0 for General Cases
-#   %                                   Zl = 1 for Cascadia
-#   %                                   Zl = 2 for Japan
+#   % ZL = Cascadia or Japan indicator: ZL = 0 for General Cases
+#   %                                   ZL = 1 for Cascadia
+#   %                                   ZL = 2 for Japan
 #   
 #   %------------------------------OUTPUTS------------------------------------%
 #     
@@ -127,15 +127,15 @@ AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, Zl)
   
  ## % Begin Computation of Ground Motion Parameter with the modifications
   if (Zt == 0) {
-    if (Zl == 0) {
+    if (ZL == 0) {
       c1 <- c1_it[1]}
-    if (Zl == 1) {
+    if (ZL == 1) {
       c1 <- c1_it_cas[1]}
-    if (Zl == 2) {
+    if (ZL == 2) {
       c1 <- c1_it_jp[1]}
   
-    log_PGArx <- c1 + c2_it[1]*M + c3_it[1]*h + c4_it[1]*R - g*log10(R);
-    PGArx <- 10^(log_PGArx);
+    log_PGArx <- c1 + c2_it[1]*M + c3_it[1]*h + c4_it[1]*R - g*log(R)/log(10)
+    PGArx <- 10^(log_PGArx)
     
     if (PGArx <= 100 | (1/ip) <= 1) {
       sl <- 1}
@@ -156,15 +156,15 @@ AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, Zl)
     
   }
   if (Zt == 1) {
-    if (Zl == 0) {
+    if (ZL == 0) {
       c1 <- c1_in[1]}
-    if (Zl == 1) {
+    if (ZL == 1) {
       c1 <- c1_in_cas[1]}
-    if (Zl == 2) {
+    if (ZL == 2) {
       c1 <- c1_in_jp[1]}
   
-    log_PGArx <- c1 + c2_in[1]*M + c3_in[1]*h + c4_in[1]*R - g*log10(R);
-    PGArx <- 10^(log_PGArx);
+    log_PGArx <- c1 + c2_in[1]*M + c3_in[1]*h + c4_in[1]*R - g*log(R)/log(10)
+    PGArx <- 10^(log_PGArx)
   
     if (PGArx <= 100 | (1/ip) <= 1) {
       sl <- 1}
@@ -184,31 +184,18 @@ AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, Zl)
   }
   
   if (Zt == 0) {
-#     if (length(which(period == T)) == 0) {
-#       i_lo <- sum(period<T)
-#       T_lo <- period[i_lo]
-#       T_hi <- period[i_lo + 1]
-#       Sa_sigma_hi <- AB_2003_SZ(T_hi,M,h,Df,Zt,Vs30,Zl)
-#       Sa_sigma_lo <- AB_2003_SZ(T_lo,M,h,Df,Zt,Vs30,Zl)
-#       
-#       x <- array(c(T_lo, T_hi))    
-#       Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
-#       Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
-#       Sa <- interp1(x,Y_Sa,T)   #################
-#       sigma <- interp1(x,Y_sigma,T)   #################
-#     }
-#     else {
+
       i <- which(period == ip)  
   
-      if (Zl == 0) {
+      if (ZL == 0) {
         c1 <- c1_it[i]}
-      if (Zl == 1) {
+      if (ZL == 1) {
         c1 <- c1_it_cas[i]}
-      if (Zl == 2) {
+      if (ZL == 2) {
         c1 <- c1_it_jp[i]}
       
       log_10_Y <- c1 + c2_it[i]*M + c3_it[i]*h + c4_it[i]*R - 
-        g*log10(R) + c5_it[i]*sl*Sc + c6_it[i]*sl*Sd + 
+        g*log(R)/log(10) + c5_it[i]*sl*Sc + c6_it[i]*sl*Sd + 
         c7_it[i]*sl*Se   #### % Log10 Sa in cm/s^2
       sigma_10 <- sqrt((sigma1_it[i])^2 + (sigma2_it[i])^2)
       
@@ -219,39 +206,24 @@ AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, Zl)
 #     }
   }
   if (Zt == 1) {
-#     if (length(which(period == T)) == 0) {
-#       i_lo <- sum(period<T)   ########
-#       T_lo <- period[i_lo]
-#       T_hi <- period[i_lo + 1]
-#   
-#       Sa_sigma_hi <- AB_2003_SZ(T_hi,M,h,Df,Zt,Vs30,Zl)
-#       Sa_sigma_lo <- AB_2003_SZ(T_lo,M,h,Df,Zt,Vs30,Zl)
-#   
-#       x <- array(c(T_lo, T_hi))
-#       Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
-#       Y_sigma <- array(c(Sa_sigma_lo[2], Sa_sigma_hi[2]))
-#       Sa <- interp1(x,Y_Sa,T)    #########
-#       sigma <- interp1(x,Y_sigma,T)
-#     }
-#     else {
       i <- which(period == ip)   
   
-      if (Zl == 0) {
+      if (ZL == 0) {
         c1 <- c1_in[i]}
-      if (Zl == 1) {
+      if (ZL == 1) {
         c1 <- c1_in_cas[i]}
-      if (Zl == 2) {
+      if (ZL == 2) {
         c1 <- c1_in_jp[i]}
       
       log_10_Y <- c1 + c2_in[i]*M + c3_in[i]*h + c4_in[i]*R - 
-        g*log10(R) + c5_in[i]*sl*Sc + c6_in[i]*sl*Sd + 
+        g*log(R)/log(10) + c5_in[i]*sl*Sc + c6_in[i]*sl*Sd + 
         c7_in[i]*sl*Se  ### % Log10 Sa in cm/s^2
       sigma_10 <- sqrt((sigma1_in[i])^2 + (sigma2_in[i])^2)
       
       Sa <- 10.^(log_10_Y)/981   #### % Median Sa in g
       sigmatotal <- log(10.^sigma_10)
-      sigma = log(10.^sigma1_it[i])
-      tau = log(10.^sigma2_it[i])
+      sigma = log(10.^sigma1_in[i])
+      tau = log(10.^sigma2_in[i])
 #     }
   }
   temp <-array(c(Sa, sigmatotal, sigma, tau)) 
@@ -259,7 +231,7 @@ AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, Zl)
 }
 
 
-AB03SZ.Cal <- function (ip, M, h, Df, Zt, Vs30, Zl)
+AB03SZ.Cal <- function (ip, M, h, Df, Zt, Vs30, ZL)
 {
   period <- array(c(0.01, 0.04, 0.1, 0.2, 0.4, 1, 2, 1/0.33))
   if (length(which(period == ip)) == 0) {
@@ -268,15 +240,14 @@ AB03SZ.Cal <- function (ip, M, h, Df, Zt, Vs30, Zl)
     {
       i_lo <- length(period)
       T_lo <- period[i_lo]
-      Sa_sigma <- AB03SZ.subCal(T_lo,M,h,Df,Zt,Vs30,Zl)
+      Sa_sigma <- AB03SZ.subCal(T_lo,M,h,Df,Zt,Vs30,ZL)
       
-    }
-    else
+    } else
     {
       T_lo <- period[i_lo]
       T_hi <- period[i_lo + 1]      
-      Sa_sigma_hi <- AB03SZ.subCal(T_hi,M,h,Df,Zt,Vs30,Zl)
-      Sa_sigma_lo <- AB03SZ.subCal(T_lo,M,h,Df,Zt,Vs30,Zl)
+      Sa_sigma_hi <- AB03SZ.subCal(T_hi,M,h,Df,Zt,Vs30,ZL)
+      Sa_sigma_lo <- AB03SZ.subCal(T_lo,M,h,Df,Zt,Vs30,ZL)
       
   #     x <- array(c(T_lo, T_hi))
   #     Y_Sa <- array(c(Sa_sigma_lo[1], Sa_sigma_hi[1]))
@@ -289,14 +260,14 @@ AB03SZ.Cal <- function (ip, M, h, Df, Zt, Vs30, Zl)
     }
   }
   if (length(which(period == ip)) > 0) {
-    Sa_sigma <- AB03SZ.subCal(ip,M,h,Df,Zt,Vs30,Zl)
+    Sa_sigma <- AB03SZ.subCal(ip,M,h,Df,Zt,Vs30,ZL)
   }
   return (Sa_sigma)
 }
 
 #####
 AB03SZ.itr <- function (list.mag, list.dist, list.p, list.zh, 
-                        flag.source, Vs30=761, Zl=0) {
+                        flag.source, Vs30=761, ZL=0) {
   m <- length(list.mag)
   n <- length(list.dist)
   le <- length(list.p)
@@ -319,14 +290,14 @@ AB03SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
       for (k in 1:n)
       {
         for (t in 1:le) {
-          #         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[he], ListDist[k], Zt, Vs30, Zl)
+          #         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[he], ListDist[k], Zt, Vs30, ZL)
 #           dist.temp <- sqrt(list.dist[k]^2 + list.zh[hh]^2)
           dist.temp <- list.dist[k]
           if(list.p[t]>1/.33) {
             results=c(NA,NA,0,0)
           } else {
             results <- AB03SZ.Cal(list.p[t], list.mag[j], list.zh[hh], 
-                                  dist.temp, Zt, Vs30, Zl)
+                                  dist.temp, Zt, Vs30, ZL)
           }
           output.Sa[k,j,t,hh] <- results[1] #*980
           output.Sd[t] <- results[2]
@@ -352,9 +323,9 @@ AB03SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
 # #   %                                 Zt = 1 for intraslab (in-slab) events
 # #   % Vs30 = Shear Wave Velocity averaged over the top 30 meters of soil of the
 # #   %      soil profile (m/sec)
-# #   % Zl = Cascadia or Japan indicator: Zl = 0 for General Cases
-# #   %                                   Zl = 1 for Cascadia
-# #   %                                   Zl = 2 for Japan
+# #   % ZL = Cascadia or Japan indicator: ZL = 0 for General Cases
+# #   %                                   ZL = 1 for Cascadia
+# #   %                                   ZL = 2 for Japan
 # # T <- 0.3
 # # M <- 7
 # h <- 80
@@ -364,7 +335,7 @@ AB03SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
 # Zt <- 1   # Zt = 0 for interface events
 # #   %       Zt = 1 for intraslab (in-slab) events
 # Vs30 <- 760
-# Zl <- 0  #general
+# ZL <- 0  #general
 # 
 # #------------------------ Create the ATN file ------------------#
 # # step 1: create the list of magnitudes
@@ -396,9 +367,9 @@ AB03SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
 #     for (k in 1:n)
 #     {
 #       for (t in 1:le) {
-# #         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[he], ListDist[k], Zt, Vs30, Zl)
+# #         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[he], ListDist[k], Zt, Vs30, ZL)
 #         dist.temp <- sqrt(ListDist[k]^2 + h.list[hh]^2)
-#         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[hh], dist.temp, Zt, Vs30, Zl)
+#         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[hh], dist.temp, Zt, Vs30, ZL)
 #         
 #         output.Sa[k,j,t,hh] <- results[1]*980
 #         output.Sd[t] <- results[2]
@@ -446,7 +417,7 @@ AB03SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
 # # Df <- 50
 # # Zt <- 1   # interface
 # # Vs30 <- 760
-# # Zl <- 0  #general
+# # ZL <- 0  #general
 # # # 
 # # 
 # # # # step 2: create the list of depths
@@ -463,7 +434,7 @@ AB03SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
 # # for (j in 1:n)
 # # {
 # #   for (t in 1:le) {
-# #     results <- AB03SZ.Cal(T.list[t], M, ListH[j], Df, Zt, Vs30, Zl)
+# #     results <- AB03SZ.Cal(T.list[t], M, ListH[j], Df, Zt, Vs30, ZL)
 # #     output.Sa[j,t] <- results[1]
 # #     output.Sd[t] <- results[2]
 # #   }

@@ -489,27 +489,32 @@ Zhao16SZ_Inslab.subCal <- function (ip, M, R, Zh, Vs30,
   lnY = lnSr + lnA
   
   # //standard deviation
-  if (siteclass  == 1) {
-    sigmaLnY = sigmaST1
-    sigma = sigmaS1
-    tau = tauS1
-  }  else if (siteclass  == 2) {
-    sigmaLnY = sigmaST2
-    sigma = sigmaS2
-    tau = tauS2
-  } else if (siteclass  == 3) {
-    sigmaLnY = sigmaST3
-    sigma = sigmaS3
-    tau = tauS3
-  } else if (siteclass  == 4) {
-    sigmaLnY = sigmaST4
-    sigma = sigmaS4
-    tau = tauS4
-  } else {
-    sigmaLnY = sT
-    sigma = sigma0
-    tau = tau0
-  }
+  # if (siteclass  == 1) {
+  #   sigmaLnY = sigmaST1
+  #   sigma = sigmaS1
+  #   tau = tauS1
+  # }  else if (siteclass  == 2) {
+  #   sigmaLnY = sigmaST2
+  #   sigma = sigmaS2
+  #   tau = tauS2
+  # } else if (siteclass  == 3) {
+  #   sigmaLnY = sigmaST3
+  #   sigma = sigmaS3
+  #   tau = tauS3
+  # } else if (siteclass  == 4) {
+  #   sigmaLnY = sigmaST4
+  #   sigma = sigmaS4
+  #   tau = tauS4
+  # } else {
+  #   sigmaLnY = sT
+  #   sigma = sigma0
+  #   tau = tau0
+  # }
+  ## the total sigma does not vary with site classes 
+  sigmaLnY = sT
+  sigma = sigma0
+  tau = tau0
+  
   Sa = exp(lnY)
   sigmatotal = sigmaLnY
   
@@ -558,10 +563,10 @@ Zhao16SZ_Inslab.Cal <- function (ip, M, R, Zh, Vs30, Xv,AddMedian)
 
 
 #####
-Zhao16SZ.itr <- function (list.mag, list.dist, list.p, list.zh, 
+Zhao16SZ.itr <- function (list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
                         flag.source, Vs30=761, Xv=0, AddMedian=0) {
   m <- length(list.mag)
-  n <- length(list.dist)
+  n <- length(list.rupdist)
   le <- length(list.p)
   he = length(list.zh)
   output.Sa <- array(NA, dim = c(n, m, le, he))
@@ -569,60 +574,37 @@ Zhao16SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   output.sigma <- array(NA, dim = c(le))
   output.tau <- array(NA, dim = c(le))
   
-  if (flag.source=="interface") {
-    Zt = 0
-    for (hh in 1:he)
-    {
-      for (j in 1:m)
-      {
-        for (k in 1:n)
-        {
-          for (t in 1:le) {
-            #         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[he], ListDist[k], Zt, Vs30, Zl)
-            #           dist.temp <- sqrt(list.dist[k]^2 + list.zh[hh]^2)
-            dist.temp <- list.dist[k]
-            if(list.p[t]>5) {
-              results=c(NA,NA)
-            } else {
+  
+  for (hh in 1:he) {
+    for (j in 1:m)  {
+      for (k in 1:n)  {
+        for (t in 1:le) {
+          
+          if(list.p[t]>5) {
+            results=c(NA,NA,0,0)
+          } else {
+            if (flag.source=="interface") {
+              list.dist = list.rupdist
+              dist.temp <- list.dist[k]
               results <- Zhao16SZ_Interf.Cal(list.p[t], list.mag[j], 
-                                             dist.temp, list.zh[hh], 
-                                             Vs30, Xv, AddMedian)
+                                           dist.temp, list.zh[hh], 
+                                           Vs30, Xv, AddMedian)
             }
-            output.Sa[k,j,t,hh] <- results[1] #*980
-            output.Sd[t] <- results[2]
-            output.sigma[t] = results[3]
-            output.tau[t] = results[4]
-          }
-        }
-      }
-      # print(h.list[hh])
-    }
-  } 
-  if (flag.source=="inslab") {
-    for (hh in 1:he)
-    {
-      for (j in 1:m)
-      {
-        for (k in 1:n)
-        {
-          for (t in 1:le) {
-            #         results <- AB03SZ.Cal(T.list[t], ListMag[j], h.list[he], ListDist[k], Zt, Vs30, Zl)
-            #           dist.temp <- sqrt(list.dist[k]^2 + list.zh[hh]^2)
-            dist.temp <- list.dist[k]
-            if(list.p[t]>5) {
-              results=c(NA,NA,0,0)
-            } else {
+            if (flag.source=="inslab") {
+              list.dist = list.hypodist
+              dist.temp <- list.dist[k]
               results <- Zhao16SZ_Inslab.Cal(list.p[t], list.mag[j], 
-                                             dist.temp, list.zh[hh], Vs30, Xv,AddMedian)
+                                             dist.temp, list.zh[hh], 
+                                             Vs30, Xv,AddMedian)
             }
-            output.Sa[k,j,t,hh] <- results[1] #*980
-            output.Sd[t] <- results[2]
-            output.sigma[t] = results[3]
-            output.tau[t] = results[4]
           }
+          output.Sa[k,j,t,hh] <- results[1] #*980
+          output.Sd[t] <- results[2]
+          output.sigma[t] = results[3]
+          output.tau[t] = results[4]
         }
       }
-      # print(h.list[hh])
+    # print(h.list[hh])
     }
   } 
   output.Sd = cbind(output.Sd, output.sigma, output.tau)

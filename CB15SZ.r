@@ -106,7 +106,7 @@ CB15SZ.subCal <- function (ip, M, Zh, R, F_event, Vs30,
   c9b = coeffs$c9b[i]
   
   sigmab= coeffs$sigmab[i]
-  if (Vs30 >760) {
+  if (Vs30 >900) {
     z_siteclass = 0  
   }  else {
     z_siteclass = 1

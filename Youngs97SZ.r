@@ -37,7 +37,8 @@ Youngs_1997_SZ <- function(M, ip, r, H, Zt, Zr,AddMedian=0)
   # %         prediction
   # 
   # %--------------------------Generic Rock Period----------------------------%
-    period_rock <- array(c(0, 0.075, 0.10, 0.20, 0.30, 0.40, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00))
+  ##!!!! the original period for PGA is zero; in this R project, all PGA is assumed = 0.01 seconds.
+    period_rock <- array(c(0.01, 0.075, 0.10, 0.20, 0.30, 0.40, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00))
   
   # %-------------------------Generic Rock Coefficients-----------------------%
     grc1  <- array(c(0.2418, 1.5168, 1.4298 ,0.9638, 0.4878, 0.1268, -0.1582, -0.9072, -1.4942, -2.3922, -3.0862, -4.2692))
@@ -54,7 +55,7 @@ Youngs_1997_SZ <- function(M, ip, r, H, Zt, Zr,AddMedian=0)
     
   
   # %--------------------------Generic Soil Period----------------------------%
-    period_soil <- array(c(0.0, 0.075, 0.10, 0.20, 0.30, 0.40, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00, 4.00))
+    period_soil <- array(c(0.01, 0.075, 0.10, 0.20, 0.30, 0.40, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00, 4.00))
   
   # %-------------------------Generic Soil Coefficients-----------------------%
   gsc1 <- array(c(-0.6687, 1.7313, 1.8473, 0.8803, 0.1243, -0.5247, -1.1067, -2.3727, -3.5387, -5.7697, -7.1017, -7.3407, -8.2867))
@@ -79,8 +80,7 @@ Youngs_1997_SZ <- function(M, ip, r, H, Zt, Zr,AddMedian=0)
         i_low <- length(period_soil)
         T_low <- period_soil[i_low]
         Sa_sigma <- Youngs_1997_SZ(M, T_low, r, H, Zt, Zr)
-      }
-      else {
+      } else {
         T_low <- period_soil[i_low]
         T_high <- period_soil[i_low + 1]
         Sa_sigma_high <- Youngs_1997_SZ(M, T_high, r, H, Zt, Zr)
@@ -93,12 +93,10 @@ Youngs_1997_SZ <- function(M, ip, r, H, Zt, Zr,AddMedian=0)
         sigma <- interpolate(ip, T_low, T_high, Sa_sigma_low[2], Sa_sigma_high[2])
         Sa_sigma <- array(c(Sa, sigma, 0,0))
       }
-    }
-    else {
+    } else {
       i <- which(period_soil == ip)
-      
       ln_Y <- gsc1[i] + gsc2[i]*M + gsc3[i]*(10-M)^3 + 
-        gsc4[i]*(log((r)+gsc7[i]*exp(gsc8[i]*M))) + gsc5[i]*H + gsc6[i]*Zt
+        gsc4[i]*log(r+gsc7[i]*exp(gsc8[i]*M)) + gsc5[i]*H + gsc6[i]*Zt
     
       sigma <- max((gsc9[i] + gsc10[i]*M), gsc11[i])
       Sa <- exp(ln_Y)
@@ -115,8 +113,7 @@ Youngs_1997_SZ <- function(M, ip, r, H, Zt, Zr,AddMedian=0)
         i_low <- length(period_rock)
         T_low <- period_rock[i_low]
         Sa_sigma <- Youngs_1997_SZ(M, T_low, r, H, Zt, Zr)
-      }
-      else {
+      } else {
         T_low <- period_rock[i_low]
         T_high <- period_rock[i_low + 1]
         Sa_sigma_high <- Youngs_1997_SZ(M, T_high, r, H, Zt, Zr)
@@ -129,11 +126,11 @@ Youngs_1997_SZ <- function(M, ip, r, H, Zt, Zr,AddMedian=0)
         sigma <- interpolate(ip, T_low, T_high, Sa_sigma_low[2], Sa_sigma_high[2])
         Sa_sigma <- array(c(Sa, sigma, 0,0))
       }
-    }
-    else {
+    } else {
       i <- which(period_rock == ip)
       ln_Y <- grc1[i] + grc2[i]*M + grc3[i]*(10-M)^3 + 
-        grc4[i]*(log((r)+grc7[i]*exp(grc8[i]*M))) + grc5[i]*H + grc6[i]*Zt
+        grc4[i]*log(r+grc7[i]*exp(grc8[i]*M)) + 
+        grc5[i]*H + grc6[i]*Zt
       sigma <- max((grc9[i] + grc10[i]*M), grc11[i])
   
       Sa <- exp(ln_Y)
@@ -164,7 +161,7 @@ YEA97SZ.itr <- function (list.mag, list.dist, list.p, list.zh,
   ### According to Youngs et al.(1997), rock is close to site class A defined by Boore et al. (1993), which is 
   ### close to NEHRP site Class B; soil is close to site class C in Boore et al. (1993), which is close to 
   ### NEHRP site class D.
-  if(Vs30 > 760) {
+  if(Vs30 > 360) {
     Zr = 1
   } else {
     Zr = 0
