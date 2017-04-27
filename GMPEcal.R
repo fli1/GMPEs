@@ -168,7 +168,7 @@ GMPE.cal <- function (list.gmpe,list.mag, list.rupdist, list.hypodist,
     dist.metrics = "Rx" ## a mixture
     
     ### calcualte Sa and sigma that are amplified to site condition
-    output = Zhao16SZ.itr (list.mag, list.rupdist, list.hypodist, list.p, list.zh-30, 
+    output = Zhao16SZ.itr (list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
                            flag.source, vs30, Xv, AddMedian)
     output.sa = output[[1]]
     output.sigma = output[[2]]

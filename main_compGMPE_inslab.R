@@ -45,14 +45,14 @@ source("GMPEcal.r")
 # rm("dataraw")
 data.recorded = data.frame(variable=NULL)
 #### ========== Main Inputs =================
-list.gmpe = c(#"AB03SZ",
-              # "Y97SZ",
-              # "Z06SZ",
-              "Z16SZ"
-              # "AEA16SZ",
-              # "MBR17SZ",
-              # "CB15SZ",
-              # "IdiniEtAl16SZ"
+list.gmpe = c("Y97SZ",
+  "AB03SZ",
+  "Z06SZ",
+              "Z16SZ",
+              "AEA16SZ",
+              "MBR17SZ",
+              "CB15SZ",
+              "IdiniEtAl16SZ"
               )
 
 ### calculation parameters
@@ -67,14 +67,16 @@ flag.period = "PGA" #0.05 #"all" ## "0.2""PGA" ##"all" #
 # if(flag.period == "PGA") {
 #   list.p = c(0.01,0.5,1,3)
 # }
-list.dist = 30 #exp(seq(log(20),log(500),length.out=50)) ##c(50) #,50,100,200) ##100 #c(75) #
-list.mag = c(9) #seq(5,8.1,0.1) #c(9) # c(8)  ##c(7.5,6.5)
-list.zh =  26 #25 #20 #c(25,50,100,200) 
+list.rupdist = 75 #exp(seq(log(20),log(500),length.out=50)) ##c(50) #,50,100,200) ##100 #c(75) #
+list.hypodist = list.rupdist
+list.dist = list.rupdist
+list.mag = seq(5,8.5,0.1) #c(9) # c(8)  ##c(7.5,6.5)
+list.zh =  50 #25 #20 #c(25,50,100,200) 
 
-vs30 = 761 #560 #761 # avoid use 760 which is the boundary limit. Vs30 is site class C in AB03
+vs30 = 760 #560 #761 # avoid use 760 which is the boundary limit. Vs30 is site class C in AB03
 
 # F_FABA = 0  ## 0=forearc; 1=backarc
-flag.source = "interface" #"inslab" #
+flag.source = "inslab" #"interface" #
 fltstyl = "strike slip" ##"normal" ##"normal" ##
 ##"reverse"
 ##"strike slip"  
@@ -82,23 +84,27 @@ fltstyl = "strike slip" ##"normal" ##"normal" ##
 flag.plot = 1
 # flag.testGMPE = 0
 
-temp = GMPE.cal(list.gmpe,list.mag, list.dist, list.p, list.zh, 
+temp = GMPE.cal(list.gmpe,list.mag, list.rupdist, list.hypodist, list.p, list.zh, 
                 vs30,
                 flag.source,  
                 F_FABA=0, F_DeltaC1=0, Delta_C1_input=-0.3, F_sigma=0, ##AEA16 & MBR17SZ
-                region="world",  ##AB03
+                region="World",  ##AB03
                 FR =0, MS =0, ##Zhao 06
                 Xv = 0, ## Zhao 16
                 T_star = 0.1, ## Idini16
                 AddMedian=0,
-                flag.testGMPE=1,
+                flag.testGMPE=0,
                 flag.scenario, flag.period)
+
 out.Sa = temp[[1]]
 list.GMPEs = temp[[2]]
 ymax = temp[[3]]
 
 figname = sprintf("comp_%s_%s_%s_vs%s", flag.source, flag.scenario, flag.period,vs30)
-colnames(out.Sa) = c(flag.scenario, list.GMPEs)
+# colnames(out.Sa) = c(flag.scenario, list.GMPEs)
+colnames(out.Sa) = c(flag.scenario, paste(rep(list.GMPEs,each=4),
+                                          c("sa","sigmatotal","sigma","tau"),sep="_"))
+
 write.table( out.Sa, sprintf("%s.csv",figname),
              row.names = F, sep=",")
 ### plot result figure 
@@ -107,6 +113,11 @@ if(flag.plot==1){
   
   datain = out.Sa
   plot.comp(figname, datain, data.recorded, 
+            list.GMPEs, flag.scenario, flag.period, 
+            flag.source, vs30,
+            list.mag, list.dist, list.zh, ymax)
+  figname = sprintf("comp84th_%s_%s_%s_vs%s", flag.source, flag.scenario, flag.period,vs30)
+  plot.comp84th(figname, datain, data.recorded, 
             list.GMPEs, flag.scenario, flag.period, 
             flag.source, vs30,
             list.mag, list.dist, list.zh, ymax)

@@ -98,7 +98,6 @@ AB03SZ.subCal <- function (ip, M, h, Df, Zt, Vs30, ZL)
     M <- 8.0   }
 #   if (Zt == 1 & M < 8.0) {
 #     M   }
- 
   
   delta <- 0.00724*(10^(0.507*M))
   R <- sqrt(Df^2 + delta^2)

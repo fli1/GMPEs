@@ -230,27 +230,27 @@ Zhao16SZ_Interf.subCal <- function (ip, M, R, Zh, Vs30,
   }
   
   # //standard deviation
-  if (siteclass  == 1) {
-    sigmaLnY = SC1ST
-    sigma = SC1sigmaS
-    tau = SC1tauS
-  }  else if (siteclass  == 2) {
-    sigmaLnY = SC2ST
-    sigma = SC2sigmaS
-    tau = SC2tauS
-  } else if (siteclass  == 3) {
-    sigmaLnY = SC3ST
-    sigma = SC3sigmaS
-    tau = SC3tauS
-  } else if (siteclass  == 4) {
-    sigmaLnY = SC4ST
-    sigma = SC4sigmaS
-    tau = SC4tauS
-  } else {
+  # if (siteclass  == 1) {
+  #   sigmaLnY = SC1ST
+  #   sigma = SC1sigmaS
+  #   tau = SC1tauS
+  # }  else if (siteclass  == 2) {
+  #   sigmaLnY = SC2ST
+  #   sigma = SC2sigmaS
+  #   tau = SC2tauS
+  # } else if (siteclass  == 3) {
+  #   sigmaLnY = SC3ST
+  #   sigma = SC3sigmaS
+  #   tau = SC3tauS
+  # } else if (siteclass  == 4) {
+  #   sigmaLnY = SC4ST
+  #   sigma = SC4sigmaS
+  #   tau = SC4tauS
+  # } else {
     sigmaLnY = sT
     sigma = sigma0
     tau = tau0
-  }
+  # }
   Sa = exp(lnY)
   sigmatotal = sigmaLnY
   
